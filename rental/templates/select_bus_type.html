@@ -7,26 +7,40 @@
 <body>
     <h1>Select Bus Type</h1>
     
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
     <form method="post">
         {% csrf_token %}
         
-        <div>
+        <div class="bus-type">
             <h2>Type A Buses</h2>
             <p>Available: {{ available_counts.A }} out of {{ total_counts.A }}</p>
-            <button type="submit" name="bus_type" value="A" {% if available_counts.A == 0 %}disabled{% endif %}>
+            <button type="submit" name="bus_type" value="A" 
+                    {% if available_counts.A == 0 %}disabled{% endif %}
+                    class="btn {% if available_counts.A > 0 %}btn-primary{% else %}btn-secondary{% endif %}">
                 Select Type A
             </button>
         </div>
         
-        <div>
+        <div class="bus-type">
             <h2>Type B Buses</h2>
             <p>Available: {{ available_counts.B }} out of {{ total_counts.B }}</p>
-            <button type="submit" name="bus_type" value="B" {% if available_counts.B == 0 %}disabled{% endif %}>
+            <button type="submit" name="bus_type" value="B" 
+                    {% if available_counts.B == 0 %}disabled{% endif %}
+                    class="btn {% if available_counts.B > 0 %}btn-primary{% else %}btn-secondary{% endif %}">
                 Select Type B
             </button>
         </div>
         
-        <div>
+        <div class="bus-type">
             <h2>Type C Buses</h2>
             <p>Available: {{ available_counts.C }} out of {{ total_counts.C }}</p>
             <button type="submit" name="bus_type" value="C" {% if available_counts.C == 0 %}disabled{% endif %}>

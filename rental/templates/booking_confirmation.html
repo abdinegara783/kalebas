@@ -1,0 +1,43 @@
+<!-- templates/booking_confirmation.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Booking Confirmation</title>
+</head>
+<body>
+    <h1>Booking Confirmation</h1>
+    
+    <div>
+        <h2>Customer Information</h2>
+        <p>Name: {{ customer.name }}</p>
+        <p>Gender: {{ customer.get_gender_display }}</p>
+    </div>
+    
+    <div>
+        <h2>Bus Information</h2>
+        <p>Bus: {{ bus.name }} (Type {{ bus.bus_type }})</p>
+    </div>
+    
+    <div>
+        <h2>Trip Details</h2>
+        <p>Start Date: {{ start_date }}</p>
+        <p>End Date: {{ end_date }}</p>
+        <p>Duration: {{ rental_days }} day(s)</p>
+        <p>Pickup Location: {{ pickup.name }}</p>
+        <p>Destination: {{ destination.name }}</p>
+        <p>Total Distance: {{ total_distance }} km</p>
+    </div>
+    
+    <div>
+        <h2>Price Details</h2>
+        <p>Total Price: Rp {{ total_price }}</p>
+    </div>
+    
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit">Confirm Booking</button>
+    </form>
+    
+    <a href="{% url 'route_selection' %}">Back</a>
+</body>
+</html>

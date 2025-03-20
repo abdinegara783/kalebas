@@ -1,6 +1,6 @@
 # # rental/admin.py
 from django.contrib import admin
-from .models import Bus, Customer
+from .models import Bus, Customer, Location, Booking
 # from django.utils.html import format_html
 # from datetime import datetime, timedelta
 # import calendar
@@ -26,24 +26,51 @@ class CustomerAdmin(admin.ModelAdmin):
     )
 
 
-# @admin.register(Booking)
-# class BookingAdmin(admin.ModelAdmin):
-#     list_display = (
-#         "id",
-#         "customer_name",
-#         "bus",
-#         "start_date",
-#         "end_date",
-#         "payment_status",
-#         "booking_date",
-#     )
-#     list_filter = ("payment_status", "bus__tipe", "start_date")
-#     search_fields = ("customer_name", "customer_phone", "bus__nama")
-#     raw_id_fields = ("bus",)
-#     date_hierarchy = "start_date"
+@admin.register(Location)
+class LocationAdmin(admin.ModelAdmin):
+    list_display = ("name", "address", "latitude", "longitude")
+    search_fields = ("name", "address")
+    list_filter = ("name",)
 
-#     def get_form(self, request, obj=None, **kwargs):
-#         form = super().get_form(request, obj, **kwargs)
-#         form.base_fields["start_date"].widget.attrs["type"] = "date"
-#         form.base_fields["end_date"].widget.attrs["type"] = "date"
-#         return form
+
+@admin.register(Booking)
+class BookingAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "customer",
+        "bus",
+        "start_date",
+        "end_date",
+        "payment_status",
+        "total_price",
+        "created_at",
+    )
+    list_filter = ("payment_status", "bus__bus_type", "start_date", "created_at")
+    search_fields = (
+        "customer__name",
+        "bus__name",
+        "pickup_location__name",
+        "destination__name",
+    )
+    raw_id_fields = ("customer", "bus", "pickup_location", "destination")
+    date_hierarchy = "start_date"
+
+    fieldsets = (
+        ("Customer and Bus", {"fields": ("customer", "bus")}),
+        (
+            "Booking Details",
+            {
+                "fields": (
+                    "start_date",
+                    "end_date",
+                    "pickup_location",
+                    "destination",
+                    "additional_locations",
+                )
+            },
+        ),
+        (
+            "Payment Information",
+            {"fields": ("total_distance", "total_price", "payment_status")},
+        ),
+    )
