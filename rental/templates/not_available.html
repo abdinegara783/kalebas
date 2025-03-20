@@ -1,0 +1,15 @@
+<!-- templates/not_available.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bus Not Available</title>
+</head>
+<body>
+    <h1>Sorry, No Buses Available</h1>
+    <p>We're sorry, but there are no buses available for the selected date.</p>
+    
+    <a href="{% url 'check_availability' %}">
+        <button>Try Another Date</button>
+    </a>
+</body>
+</html>

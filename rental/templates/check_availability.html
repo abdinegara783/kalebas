@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Check Availability - Bus Rental Service{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 0 auto;">
+    <h2 style="margin-bottom: 2rem;">Check Bus Availability</h2>
+    
+    <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}
+                    <div class="message error">
+                        {{ field.errors }}
+                    </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-primary">Check Availability</button>
+    </form>
+</div>
+{% endblock %}

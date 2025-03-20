@@ -1,0 +1,18 @@
+<!-- templates/route_selection.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Route Selection</title>
+</head>
+<body>
+    <h1>Select Your Route</h1>
+    
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Calculate Price</button>
+    </form>
+    
+    <a href="{% url 'select_bus_type' %}">Back</a>
+</body>
+</html>

@@ -1,0 +1,40 @@
+<!-- templates/select_bus_type.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Select Bus Type</title>
+</head>
+<body>
+    <h1>Select Bus Type</h1>
+    
+    <form method="post">
+        {% csrf_token %}
+        
+        <div>
+            <h2>Type A Buses</h2>
+            <p>Available: {{ available_counts.A }} out of {{ total_counts.A }}</p>
+            <button type="submit" name="bus_type" value="A" {% if available_counts.A == 0 %}disabled{% endif %}>
+                Select Type A
+            </button>
+        </div>
+        
+        <div>
+            <h2>Type B Buses</h2>
+            <p>Available: {{ available_counts.B }} out of {{ total_counts.B }}</p>
+            <button type="submit" name="bus_type" value="B" {% if available_counts.B == 0 %}disabled{% endif %}>
+                Select Type B
+            </button>
+        </div>
+        
+        <div>
+            <h2>Type C Buses</h2>
+            <p>Available: {{ available_counts.C }} out of {{ total_counts.C }}</p>
+            <button type="submit" name="bus_type" value="C" {% if available_counts.C == 0 %}disabled{% endif %}>
+                Select Type C
+            </button>
+        </div>
+    </form>
+    
+    <a href="{% url 'check_availability' %}">Back</a>
+</body>
+</html>
