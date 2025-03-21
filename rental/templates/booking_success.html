@@ -1,39 +1,17 @@
-<!-- templates/booking_success.html -->
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Booking Success</title>
-</head>
-<body>
-    <h1>Booking Successful!</h1>
-    
-    <div class="booking-details">
-        <h2>Booking Information</h2>
-        <p>Booking ID: #{{ booking.id }}</p>
-        
-        <h3>Customer Details</h3>
-        <p>Name: {{ booking.customer_name }}</p>
-        <p>Phone: {{ booking.customer_phone }}</p>
-        <p>Email: {{ booking.customer_email }}</p>
-        <p>Gender: {{ booking.get_customer_gender_display }}</p>
-        
-        <h3>Trip Details</h3>
-        <p>Bus: {{ booking.bus.name }} (Type {{ booking.bus.bus_type }})</p>
-        <p>Start Date: {{ booking.start_date }}</p>
-        <p>End Date: {{ booking.end_date }}</p>
-        
-        <h3>Location Details</h3>
-        <p>Pickup: {{ booking.pickup_location }}</p>
-        <p>Destination: {{ booking.destination }}</p>
-        
-        <h3>Payment Information</h3>
-        <p>Total Distance: {{ booking.total_distance }} km</p>
-        <p>Total Price: Rp {{ booking.total_price }}</p>
-        <p>Payment Status: {{ booking.get_payment_status_display }}</p>
+{% extends 'base.html' %}
+
+{% block title %}Booking Successful{% endblock %}
+
+{% block content %}
+<div class="text-center py-5">
+    <div class="text-success mb-4">
+        <i class="fas fa-check-circle fa-5x"></i>
     </div>
-    
-    <p>Our admin will contact you shortly via WhatsApp at {{ booking.customer_phone }}</p>
-    
-    <a href="{% url 'home' %}" class="button">Back to Home</a>
-</body>
-</html>
+    <h1 class="mb-4">Booking Successful!</h1>
+    <p class="text-muted mb-4">
+        Your booking has been successfully created. Our admin will contact you shortly.
+    </p>
+    <p class="fw-medium mb-5">You can also contact our admin via WhatsApp at: +6281234567890</p>
+    <a href="{% url 'home' %}" class="btn btn-primary">Back to Home</a>
+</div>
+{% endblock %}

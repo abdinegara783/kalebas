@@ -1,43 +1,147 @@
-<!-- templates/booking_confirmation.html -->
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Booking Confirmation</title>
-</head>
-<body>
-    <h1>Booking Confirmation</h1>
-    
-    <div>
-        <h2>Customer Information</h2>
-        <p>Name: {{ customer.name }}</p>
-        <p>Gender: {{ customer.get_gender_display }}</p>
+{% extends 'base.html' %}
+
+{% block title %}Booking Confirmation{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h1 class="mb-4">Booking Confirmation</h1>
+        
+        <div class="space-y-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user me-2"></i> Customer Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-2">
+                        <div class="col-md-4 text-muted">Name:</div>
+                        <div class="col-md-8 fw-medium">{{ booking.customer_name }}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 text-muted">Phone:</div>
+                        <div class="col-md-8">{{ booking.customer_phone }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bus me-2"></i> Bus Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-2">
+                        <div class="col-md-4 text-muted">Bus:</div>
+                        <div class="col-md-8 fw-medium">{{ booking.bus.name }}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 text-muted">Type:</div>
+                        <div class="col-md-8">Type {{ booking.bus.type }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-calendar me-2"></i> Trip Details
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-2">
+                        <div class="col-md-4 text-muted">Start Date:</div>
+                        <div class="col-md-8">{{ booking.start_date }}</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-md-4 text-muted">End Date:</div>
+                        <div class="col-md-8">{{ booking.end_date }}</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-md-4 text-muted">Duration:</div>
+                        <div class="col-md-8">
+                            {{ booking.rental_days }} {% if booking.rental_days == 1 %}day{% else %}days{% endif %}
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="row mb-2">
+                        <div class="col-md-4 text-muted">Pickup:</div>
+                        <div class="col-md-8">
+                            <i class="fas fa-map-marker-alt me-1"></i> {{ booking.pickup }}
+                        </div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-md-4 text-muted">Destination:</div>
+                        <div class="col-md-8">
+                            <i class="fas fa-map-marker-alt me-1"></i> {{ booking.destination }}
+                        </div>
+                    </div>
+
+                    {% if booking.additional_locations %}
+                    <div class="row mb-2">
+                        <div class="col-md-4 text-muted">Additional Stops:</div>
+                        <div class="col-md-8">
+                            {% for location in booking.get_additional_locations_list %}
+                            <div>
+                                <i class="fas fa-map-marker-alt me-1"></i> {{ location }}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="row">
+                        <div class="col-md-4 text-muted">Total Distance:</div>
+                        <div class="col-md-8">{{ booking.total_distance }} km</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Price Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-2">
+                        <div class="col-md-8 text-muted">Base rate per km (Type {{ booking.bus.type }}):</div>
+                        <div class="col-md-4 text-end">
+                            Rp {% if booking.bus.type == 'A' %}10,000{% elif booking.bus.type == 'B' %}15,000{% else %}20,000{% endif %}
+                        </div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-md-8 text-muted">Distance:</div>
+                        <div class="col-md-4 text-end">{{ booking.total_distance }} km</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-md-8 text-muted">Duration:</div>
+                        <div class="col-md-4 text-end">
+                            {{ booking.rental_days }} {% if booking.rental_days == 1 %}day{% else %}days{% endif %}
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="row">
+                        <div class="col-md-8 fw-bold fs-5">Total Price:</div>
+                        <div class="col-md-4 text-end fw-bold fs-5">
+                            Rp {{ booking.total_price|floatformat:0|stringformat:'s'|slice:':-3' }},{{ booking.total_price|floatformat:0|stringformat:'s'|slice:'-3:' }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between pt-4">
+                <a href="{% url 'booking' %}" class="btn btn-outline-secondary">Back</a>
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary">Confirm Booking</button>
+                </form>
+            </div>
+        </div>
     </div>
-    
-    <div>
-        <h2>Bus Information</h2>
-        <p>Bus: {{ bus.name }} (Type {{ bus.bus_type }})</p>
-    </div>
-    
-    <div>
-        <h2>Trip Details</h2>
-        <p>Start Date: {{ start_date }}</p>
-        <p>End Date: {{ end_date }}</p>
-        <p>Duration: {{ rental_days }} day(s)</p>
-        <p>Pickup Location: {{ pickup.name }}</p>
-        <p>Destination: {{ destination.name }}</p>
-        <p>Total Distance: {{ total_distance }} km</p>
-    </div>
-    
-    <div>
-        <h2>Price Details</h2>
-        <p>Total Price: Rp {{ total_price }}</p>
-    </div>
-    
-    <form method="post">
-        {% csrf_token %}
-        <button type="submit">Confirm Booking</button>
-    </form>
-    
-    <a href="{% url 'route_selection' %}">Back</a>
-</body>
-</html>
+</div>
+{% endblock %}

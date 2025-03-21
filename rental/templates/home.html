@@ -1,16 +1,13 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 
-{% block title %}Welcome - Bus Rental Service{% endblock %}
+{% block title %}Bus Rental Service{% endblock %}
 
 {% block content %}
-<div style="text-align: center; padding: 3rem 0;">
-    <h2 style="font-size: 2.5rem; margin-bottom: 1.5rem;">Welcome to Bus Rental Service</h2>
-    <p style="font-size: 1.2rem; color: #666; margin-bottom: 2rem;">
-        We provide high-quality bus rental services for your travel needs.
-    </p>
-    
-    <a href="{% url 'check_availability' %}" class="btn btn-primary">
-        Check Bus Availability
+<div class="text-center py-5">
+    <h1 class="mb-4">Bus Rental Service</h1>
+    <p class="lead mb-5">We provide high-quality bus rental services for your travel needs.</p>
+    <a href="{% url 'booking' %}" class="btn btn-primary btn-lg">
+        Check Bus Availability <i class="fas fa-arrow-right ms-2"></i>
     </a>
 </div>
 {% endblock %}
