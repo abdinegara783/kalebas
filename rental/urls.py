@@ -12,6 +12,8 @@ urlpatterns = [
     ),
     path("booking-success/", views.booking_success, name="booking_success"),
     path("not-available/", views.not_available, name="not_available"),
+    path("api/geocode/", views.geocode, name="geocode"),
+    path("route/", views.route, name="route"),
     # Admin URLs
     # path("admin-dashboard/", views.admin_dashboard, name="admin_dashboard"),
     # path("admin-bookings/", views.admin_bookings, name="admin_bookings"),

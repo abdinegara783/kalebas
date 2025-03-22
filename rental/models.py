@@ -80,11 +80,3 @@ class Booking(models.Model):
             self.additional_locations = json.dumps(locations_list)
         else:
             self.additional_locations = None
-
-    def get_route_map_url(self):
-        """Generate Google Maps URL for the route"""
-        if self.pickup_coordinates and self.destination_coordinates:
-            pickup_lat, pickup_lng = self.pickup_coordinates.split(",")
-            dest_lat, dest_lng = self.destination_coordinates.split(",")
-            return f"https://www.google.com/maps/dir/{pickup_lat},{pickup_lng}/{dest_lat},{dest_lng}"
-        return None

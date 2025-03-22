@@ -1,5 +1,4 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse, Http404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
@@ -30,6 +29,7 @@ def booking_page(request):
             rental_days = form.cleaned_data["rental_days"]
             pickup = form.cleaned_data["pickup"]
             destination = form.cleaned_data["destination"]
+            end_date = rental_date + timedelta(days=rental_days - 1)
 
             # Process additional locations
             additional_locations = []
@@ -38,17 +38,24 @@ def booking_page(request):
                     form.cleaned_data["additional_locations"]
                 )
 
-            # Find available bus of the selected type
+            # Get all buses of the selected type
             buses = Bus.objects.filter(type=bus_type)
-            if not buses.exists():
-                messages.error(request, "No buses available of the selected type")
-                return redirect("booking")
 
-            # For simplicity, just use the first bus of the selected type
-            selected_bus = buses.first()
+            # Find available bus
+            available_bus = None
+            for bus in buses:
+                # Check if bus is booked during the requested period
+                conflicting_bookings = Booking.objects.filter(
+                    bus=bus, start_date__lte=end_date, end_date__gte=rental_date
+                )
 
-            # Calculate end date
-            end_date = rental_date + timedelta(days=rental_days - 1)
+                if not conflicting_bookings.exists():
+                    available_bus = bus
+                    break
+
+            # If no bus is available, redirect to not_available page
+            if not available_bus:
+                return redirect("not_available")
 
             # Calculate distance (simplified)
             distance = random.randint(50, 500)  # Random distance between 50-500 km
@@ -67,7 +74,7 @@ def booking_page(request):
             booking = Booking(
                 customer_name=customer_name,
                 customer_phone=customer_phone,
-                bus=selected_bus,
+                bus=available_bus,
                 start_date=rental_date,
                 end_date=end_date,
                 rental_days=rental_days,
@@ -94,7 +101,18 @@ def booking_confirmation(request, booking_id):
     booking = get_object_or_404(Booking, id=booking_id)
 
     if request.method == "POST":
-        # Confirm booking
+        # Update booking with calculated distance
+        calculated_distance = float(request.POST.get("calculated_distance", 0))
+        booking.total_distance = calculated_distance
+
+        # Recalculate price based on new distance
+        rate_per_km = {
+            "A": 10000,  # Rp 10,000 per km for Type A
+            "B": 15000,  # Rp 15,000 per km for Type B
+            "C": 20000,  # Rp 20,000 per km for Type C
+        }
+        booking.total_price = calculated_distance * rate_per_km[booking.bus.type]
+
         booking.save()
         return redirect("booking_success")
 
@@ -272,3 +290,49 @@ def not_available(request):
 #     booking.delete()
 #     messages.success(request, "Booking deleted successfully")
 #     return redirect("admin_bookings")
+
+from django.shortcuts import render
+from django.http import JsonResponse
+import requests
+import json
+
+
+def route(request):
+    """
+    View for the main route finder page
+    """
+    return render(request, "route.html")
+
+
+def geocode(request):
+    """
+    API view to proxy geocoding requests to Nominatim
+    """
+    query = request.GET.get("query", "")
+
+    if not query:
+        return JsonResponse({"error": "Query parameter is required"}, status=400)
+
+    try:
+        # Forward the request to Nominatim with Indonesia country code
+        response = requests.get(
+            f"https://nominatim.openstreetmap.org/search",
+            params={"format": "json", "q": query, "countrycodes": "id", "limit": 5},
+            headers={
+                "User-Agent": "RouteFinderApp/1.0 Django",
+                "Accept-Language": "en",
+            },
+        )
+
+        if response.status_code != 200:
+            return JsonResponse(
+                {"error": f"Nominatim API error: {response.status_code}"}, status=500
+            )
+
+        data = response.json()
+        return JsonResponse(data, safe=False)
+
+    except Exception as e:
+        return JsonResponse(
+            {"error": f"Failed to fetch location data: {str(e)}"}, status=500
+        )
