@@ -1,0 +1,106 @@
+{% extends 'admin_base.html' %}
+
+{% block title %}
+    {% if status %}
+        {% if status == 'PENDING' %}Pending Bookings
+        {% elif status == 'DP' %}Down Payment Bookings
+        {% else %}Paid Bookings{% endif %}
+    {% else %}All Bookings{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>
+        {% if status %}
+            {% if status == 'PENDING' %}Pending Bookings
+            {% elif status == 'DP' %}Down Payment Bookings
+            {% else %}Paid Bookings{% endif %}
+        {% else %}All Bookings{% endif %}
+    </h1>
+    <a href="{% url 'admin_new_booking' %}" class="btn btn-primary">
+        <i class="fas fa-plus-circle me-2"></i> New Booking
+    </a>
+</div>
+
+{% if bookings %}
+    <div class="space-y-4">
+        {% for booking in bookings %}
+            <div class="card mb-3">
+                <div class="card-body p-0">
+                    <div class="row g-0">
+                        <div class="col-md-9 p-4">
+                            <div class="d-flex flex-column flex-md-row justify-content-between mb-3">
+                                <div>
+                                    <h5 class="fw-semibold">{{ booking.customer_name }}</h5>
+                                    <div class="small text-muted d-flex align-items-center">
+                                        <i class="fas fa-phone me-1"></i>
+                                        <span>{{ booking.customer_phone }}</span>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center gap-2 mt-2 mt-md-0">
+                                    {% if booking.payment_status == 'PENDING' %}
+                                        <span class="badge bg-secondary">Pending</span>
+                                    {% elif booking.payment_status == 'DP' %}
+                                        <span class="badge bg-warning">Down Payment</span>
+                                    {% else %}
+                                        <span class="badge bg-success">Paid</span>
+                                    {% endif %}
+                                    
+                                    <form method="post" action="{% url 'update_booking_status' booking.id %}">
+                                        {% csrf_token %}
+                                        <select name="status" class="form-select" style="width: 140px;" onchange="this.form.submit()">
+                                            <option value="PENDING" {% if booking.payment_status == 'PENDING' %}selected{% endif %}>Pending</option>
+                                            <option value="DP" {% if booking.payment_status == 'DP' %}selected{% endif %}>Down Payment</option>
+                                            <option value="PAID" {% if booking.payment_status == 'PAID' %}selected{% endif %}>Paid</option>
+                                        </select>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3 mb-md-0">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="fas fa-calendar me-2 text-muted"></i>
+                                        <span>{{ booking.start_date|date:"M d, Y" }} - {{ booking.end_date|date:"M d, Y" }}</span>
+                                    </div>
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-bus me-2 text-muted"></i>
+                                        <span>{{ booking.bus.name }} (Type {{ booking.bus.type }})</span>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-start mb-2">
+                                        <i class="fas fa-map-marker-alt me-2 text-muted mt-1"></i>
+                                        <div>
+                                            <div>From: {{ booking.pickup }}</div>
+                                            <div>To: {{ booking.destination }}</div>
+                                        </div>
+                                    </div>
+                                    <div class="fw-medium">
+                                        Rp {{ booking.total_price|floatformat:0|stringformat:'s'|slice:':-3' }},{{ booking.total_price|floatformat:0|stringformat:'s'|slice:'-3:' }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-3 bg-light p-4 d-flex flex-row flex-md-column justify-content-between align-items-center align-items-md-end border-top border-md-start">
+                            <div class="small text-muted">
+                                Created: {{ booking.created_at|date:"M d, Y" }}
+                            </div>
+                            <a href="{% url 'admin_booking_details' booking.id %}" class="btn btn-outline-secondary btn-sm">
+                                View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="text-center py-5 bg-white rounded shadow p-4">
+        <p class="text-muted mb-3">No bookings found</p>
+        <p class="small text-muted">Create a new booking to see it here</p>
+    </div>
+{% endif %}
+{% endblock %}

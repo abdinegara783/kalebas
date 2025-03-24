@@ -1,0 +1,77 @@
+{% extends 'admin_base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Create New Booking{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center gap-3 mb-4">
+    <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left"></i>
+    </a>
+    <h1>Create New Booking</h1>
+</div>
+
+<form method="post">
+    {% csrf_token %}
+    
+    <div class="bg-light p-4 rounded mb-4">
+        <h2 class="fs-4 mb-3">Customer Information</h2>
+        <div class="row">
+            <div class="col-md-6">
+                {{ form.customer_name|crispy }}
+            </div>
+            <div class="col-md-6">
+                {{ form.customer_phone|crispy }}
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-light p-4 rounded mb-4">
+        <h2 class="fs-4 mb-3">Booking Details</h2>
+        <div class="row">
+            <div class="col-md-6">
+                {{ form.bus|crispy }}
+            </div>
+            <div class="col-md-6">
+                {{ form.start_date|crispy }}
+            </div>
+            <div class="col-md-6">
+                {{ form.rental_days|crispy }}
+            </div>
+            <div class="col-md-6">
+                {{ form.payment_status|crispy }}
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-light p-4 rounded mb-4">
+        <h2 class="fs-4 mb-3">Route Information</h2>
+        <div class="mb-3">
+            <label for="id_pickup" class="form-label">Pickup Location</label>
+            <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                {{ form.pickup }}
+            </div>
+        </div>
+        
+        <div class="mb-3">
+            <label for="id_destination" class="form-label">Destination</label>
+            <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                {{ form.destination }}
+            </div>
+        </div>
+        
+        <div class="mb-3">
+            <label for="id_additional_locations_text" class="form-label">Additional Locations (Optional)</label>
+            <div class="form-text mb-2">Add any additional stops needed during the trip (one per line).</div>
+            {{ form.additional_locations_text }}
+        </div>
+    </div>
+    
+    <div class="d-flex justify-content-between">
+        <a href="{% url 'admin_bookings' %}" class="btn btn-outline-secondary">Cancel</a>
+        <button type="submit" class="btn btn-primary">Create Booking</button>
+    </div>
+</form>
+{% endblock %}

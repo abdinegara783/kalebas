@@ -1,0 +1,194 @@
+{% extends 'admin_base.html' %}
+
+{% block title %}Booking Details{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center gap-3 mb-4">
+    <a href="{% url 'admin_bookings' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left"></i>
+    </a>
+    <h1>Booking Details</h1>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fs-4 fw-semibold">Booking #{{ booking.id }}</h2>
+        <p class="text-muted">
+            Created for {{ booking.customer_name }} on {{ booking.start_date|date:"M d, Y" }}
+        </p>
+    </div>
+    <div class="d-flex align-items-center gap-3">
+        <div class="d-flex align-items-center gap-2">
+            <span class="fw-medium">Status:</span>
+            <form method="post" action="{% url 'update_booking_status' booking.id %}">
+                {% csrf_token %}
+                <select name="status" class="form-select" style="width: 140px;" onchange="this.form.submit()">
+                    <option value="PENDING" {% if booking.payment_status == 'PENDING' %}selected{% endif %}>Pending</option>
+                    <option value="DP" {% if booking.payment_status == 'DP' %}selected{% endif %}>Down Payment</option>
+                    <option value="PAID" {% if booking.payment_status == 'PAID' %}selected{% endif %}>Paid</option>
+                </select>
+            </form>
+        </div>
+
+        <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal">
+            <i class="fas fa-trash me-2"></i> Delete
+        </button>
+    </div>
+</div>
+
+<div class="space-y-6">
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-user me-2"></i> Customer Information
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row mb-2">
+                <div class="col-md-4 text-muted">Name:</div>
+                <div class="col-md-8 fw-medium">{{ booking.customer_name }}</div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 text-muted">Phone:</div>
+                <div class="col-md-8">{{ booking.customer_phone }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-bus me-2"></i> Bus Information
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row mb-2">
+                <div class="col-md-4 text-muted">Bus:</div>
+                <div class="col-md-8 fw-medium">{{ booking.bus.name }}</div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 text-muted">Type:</div>
+                <div class="col-md-8">Type {{ booking.bus.type }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-calendar me-2"></i> Trip Details
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row mb-2">
+                <div class="col-md-4 text-muted">Start Date:</div>
+                <div class="col-md-8">{{ booking.start_date }}</div>
+            </div>
+            <div class="row mb-2">
+                <div class="col-md-4 text-muted">End Date:</div>
+                <div class="col-md-8">{{ booking.end_date }}</div>
+            </div>
+            <div class="row mb-2">
+                <div class="col-md-4 text-muted">Duration:</div>
+                <div class="col-md-8">
+                    {{ booking.rental_days }} {% if booking.rental_days == 1 %}day{% else %}days{% endif %}
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="row mb-2">
+                <div class="col-md-4 text-muted">Pickup:</div>
+                <div class="col-md-8">
+                    <i class="fas fa-map-marker-alt me-1"></i> {{ booking.pickup }}
+                </div>
+            </div>
+            <div class="row mb-2">
+                <div class="col-md-4 text-muted">Destination:</div>
+                <div class="col-md-8">
+                    <i class="fas fa-map-marker-alt me-1"></i> {{ booking.destination }}
+                </div>
+            </div>
+
+            {% if booking.additional_locations %}
+            <div class="row mb-2">
+                <div class="col-md-4 text-muted">Additional Stops:</div>
+                <div class="col-md-8">
+                    {% for location in booking.get_additional_locations_list %}
+                    <div>
+                        <i class="fas fa-map-marker-alt me-1"></i> {{ location }}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="row">
+                <div class="col-md-4 text-muted">Total Distance:</div>
+                <div class="col-md-8">{{ booking.total_distance }} km</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Price Details</h5>
+        </div>
+        <div class="card-body">
+            <div class="row mb-2">
+                <div class="col-md-8 text-muted">Base rate per km (Type {{ booking.bus.type }}):</div>
+                <div class="col-md-4 text-end">
+                    Rp {% if booking.bus.type == 'A' %}10,000{% elif booking.bus.type == 'B' %}15,000{% else %}20,000{% endif %}
+                </div>
+            </div>
+            <div class="row mb-2">
+                <div class="col-md-8 text-muted">Distance:</div>
+                <div class="col-md-4 text-end">{{ booking.total_distance }} km</div>
+            </div>
+            <div class="row mb-2">
+                <div class="col-md-8 text-muted">Duration:</div>
+                <div class="col-md-4 text-end">
+                    {{ booking.rental_days }} {% if booking.rental_days == 1 %}day{% else %}days{% endif %}
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="row">
+                <div class="col-md-8 fw-bold fs-5">Total Price:</div>
+                <div class="col-md-4 text-end fw-bold fs-5">
+                    Rp {{ booking.total_price|floatformat:0|stringformat:'s'|slice:':-3' }},{{ booking.total_price|floatformat:0|stringformat:'s'|slice:'-3:' }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-start pt-4">
+        <a href="{% url 'admin_bookings' %}" class="btn btn-outline-secondary">
+            Back to Bookings
+        </a>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Are you sure?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                This action cannot be undone. This will permanently delete the booking and remove it from our servers.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="post" action="{% url 'delete_booking' booking.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
