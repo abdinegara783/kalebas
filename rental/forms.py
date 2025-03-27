@@ -36,21 +36,6 @@ class BookingForm(forms.Form):
         initial=1,
         widget=forms.NumberInput(attrs={"class": "form-control"}),
     )
-    pickup = forms.CharField(
-        label="Pickup Location",
-        max_length=200,
-        widget=forms.TextInput(attrs={"class": "form-control"}),
-    )
-    destination = forms.CharField(
-        label="Destination",
-        max_length=200,
-        widget=forms.TextInput(attrs={"class": "form-control"}),
-    )
-    additional_locations_text = forms.CharField(
-        label="Additional Locations (one per line)",
-        required=False,
-        widget=forms.Textarea(attrs={"class": "form-control", "rows": 3}),
-    )
 
     def clean_rental_date(self):
         rental_date = self.cleaned_data.get("rental_date")
@@ -73,6 +58,34 @@ class BookingForm(forms.Form):
             loc.strip() for loc in additional_locations if loc.strip()
         ]
         cleaned_data["additional_locations"] = additional_locations
+        return cleaned_data
+
+
+class LocationForm(forms.Form):
+    pickup = forms.CharField(
+        label="Pickup Location",
+        max_length=200,
+        widget=forms.TextInput(
+            attrs={"class": "form-control", "placeholder": "Enter pickup location"}
+        ),
+    )
+    destination = forms.CharField(
+        label="Destination",
+        max_length=200,
+        widget=forms.TextInput(
+            attrs={"class": "form-control", "placeholder": "Enter destination"}
+        ),
+    )
+    additional_locations = forms.CharField(
+        label="Additional Locations", required=False, widget=forms.HiddenInput()
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        additional_locations = self.data.getlist("additional_locations[]")
+        cleaned_data["additional_locations"] = [
+            loc.strip() for loc in additional_locations if loc.strip()
+        ]
         return cleaned_data
 
 

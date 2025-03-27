@@ -80,3 +80,25 @@ class Booking(models.Model):
             self.additional_locations = json.dumps(locations_list)
         else:
             self.additional_locations = None
+
+
+class Location(models.Model):
+    LOCATION_TYPES = [
+        ("PICKUP", "Pickup"),
+        ("DESTINATION", "Destination"),
+        ("ADDITIONAL", "Additional Stop"),
+    ]
+
+    booking = models.ForeignKey(
+        "Booking", on_delete=models.CASCADE, related_name="locations"
+    )
+    name = models.CharField(max_length=200)
+    type = models.CharField(max_length=20, choices=LOCATION_TYPES)
+    coordinates = models.CharField(max_length=50, blank=True)
+    order = models.IntegerField(default=0)  # Untuk mengurutkan additional stops
+
+    class Meta:
+        ordering = ["order"]
+
+    def __str__(self):
+        return f"{self.get_type_display()}: {self.name}"

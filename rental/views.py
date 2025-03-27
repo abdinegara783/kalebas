@@ -22,79 +22,166 @@ def booking_page(request):
         form = BookingForm(request.POST)
         if form.is_valid():
             # Get form data
-            customer_name = form.cleaned_data["name"]
-            customer_phone = form.cleaned_data["phone"]
-            bus_type = form.cleaned_data["bus_type"]
-            rental_date = form.cleaned_data["rental_date"]
-            rental_days = form.cleaned_data["rental_days"]
-            pickup = form.cleaned_data["pickup"]
-            destination = form.cleaned_data["destination"]
-            end_date = rental_date + timedelta(days=rental_days - 1)
-
-            # Process additional locations
-            additional_locations = []
-            if form.cleaned_data["additional_locations"]:
-                additional_locations = json.loads(
-                    form.cleaned_data["additional_locations"]
-                )
-
-            # Get all buses of the selected type
-            buses = Bus.objects.filter(type=bus_type)
-
-            # Find available bus
-            available_bus = None
-            for bus in buses:
-                # Check if bus is booked during the requested period
-                conflicting_bookings = Booking.objects.filter(
-                    bus=bus, start_date__lte=end_date, end_date__gte=rental_date
-                )
-
-                if not conflicting_bookings.exists():
-                    available_bus = bus
-                    break
-
-            # If no bus is available, redirect to not_available page
-            if not available_bus:
-                return redirect("not_available")
-
-            # Calculate distance (simplified)
-            distance = random.randint(50, 500)  # Random distance between 50-500 km
-
-            # Calculate price
-            rate_per_km = {
-                "A": 10000,  # Rp 10,000 per km for Type A
-                "B": 15000,  # Rp 15,000 per km for Type B
-                "C": 20000,  # Rp 20,000 per km for Type C
+            request.session["booking_data"] = {
+                "name": form.cleaned_data["name"],
+                "phone": form.cleaned_data["phone"],
+                "bus_type": form.cleaned_data["bus_type"],
+                "rental_date": form.cleaned_data["rental_date"].isoformat(),
+                "rental_days": form.cleaned_data["rental_days"],
             }
-
-            base_price = distance * rate_per_km[bus_type]
-            total_price = base_price * rental_days
-
-            # Create booking
-            booking = Booking(
-                customer_name=customer_name,
-                customer_phone=customer_phone,
-                bus=available_bus,
-                start_date=rental_date,
-                end_date=end_date,
-                rental_days=rental_days,
-                pickup=pickup,
-                destination=destination,
-                additional_locations=json.dumps(additional_locations)
-                if additional_locations
-                else None,
-                total_distance=distance,
-                total_price=total_price,
-                payment_status="PENDING",
-            )
-            booking.save()
-
-            # Redirect to booking confirmation
-            return redirect("booking_confirmation", booking_id=booking.id)
+            return redirect("route_selection")
     else:
         form = BookingForm()
-
     return render(request, "booking.html", {"form": form})
+    #         customer_name = form.cleaned_data["name"]
+    #         customer_phone = form.cleaned_data["phone"]
+    #         bus_type = form.cleaned_data["bus_type"]
+    #         rental_date = form.cleaned_data["rental_date"]
+    #         rental_days = form.cleaned_data["rental_days"]
+    #         pickup = form.cleaned_data["pickup"]
+    #         destination = form.cleaned_data["destination"]
+    #         end_date = rental_date + timedelta(days=rental_days - 1)
+
+    #         # Process additional locations
+    #         additional_locations = []
+    #         if form.cleaned_data["additional_locations"]:
+    #             additional_locations = json.loads(
+    #                 form.cleaned_data["additional_locations"]
+    #             )
+
+    #         # Get all buses of the selected type
+    #         buses = Bus.objects.filter(type=bus_type)
+
+    #         # Find available bus
+    #         available_bus = None
+    #         for bus in buses:
+    #             # Check if bus is booked during the requested period
+    #             conflicting_bookings = Booking.objects.filter(
+    #                 bus=bus, start_date__lte=end_date, end_date__gte=rental_date
+    #             )
+
+    #             if not conflicting_bookings.exists():
+    #                 available_bus = bus
+    #                 break
+
+    #         # If no bus is available, redirect to not_available page
+    #         if not available_bus:
+    #             return redirect("not_available")
+
+    #         # Calculate distance (simplified)
+    #         distance = random.randint(50, 500)  # Random distance between 50-500 km
+
+    #         # Calculate price
+    #         rate_per_km = {
+    #             "A": 10000,  # Rp 10,000 per km for Type A
+    #             "B": 15000,  # Rp 15,000 per km for Type B
+    #             "C": 20000,  # Rp 20,000 per km for Type C
+    #         }
+
+    #         base_price = distance * rate_per_km[bus_type]
+    #         total_price = base_price * rental_days
+
+    #         # Create booking
+    #         booking = Booking(
+    #             customer_name=customer_name,
+    #             customer_phone=customer_phone,
+    #             bus=available_bus,
+    #             start_date=rental_date,
+    #             end_date=end_date,
+    #             rental_days=rental_days,
+    #             pickup=pickup,
+    #             destination=destination,
+    #             additional_locations=json.dumps(additional_locations)
+    #             if additional_locations
+    #             else None,
+    #             total_distance=distance,
+    #             total_price=total_price,
+    #             payment_status="PENDING",
+    #         )
+    #         booking.save()
+
+    #         # Redirect to booking confirmation
+    #         return redirect("booking_confirmation", booking_id=booking.id)
+    # else:
+    #     form = BookingForm()
+
+    # return render(request, "booking.html", {"form": form})
+
+
+def route_selection(request):
+    if request.method == "POST":
+        booking_data = request.session.get("booking_data", {})
+
+        # Get location data from POST
+        pickup = request.POST.get("pickup")
+        destination = request.POST.get("destination")
+        additional_locations = request.POST.get(
+            "waypoints", []
+        )  # Get waypoints aj JSON
+
+        # Convert waypoints to list of location names
+        waypoints = json.loads(additional_locations)
+        additional_locations_list = (
+            [wp["name"] for wp in waypoints[1:-1]] if len(waypoints) > 2 else []
+        )
+        # Get all buses of the selected type
+        bus_type = booking_data["bus_type"]
+        rental_date = booking_data["rental_date"]
+        rental_days = booking_data["rental_days"]
+        end_date = rental_date + timedelta(days=rental_days - 1)
+        buses = Bus.objects.filter(type=bus_type)
+        # Find available bus
+        available_bus = None
+        for bus in buses:
+            # Check if bus is booked during the requested period
+            conflicting_bookings = Booking.objects.filter(
+                bus=bus, start_date__lte=end_date, end_date__gte=rental_date
+            )
+
+            if not conflicting_bookings.exists():
+                available_bus = bus
+                break
+
+        # If no bus is available, redirect to not_available page
+        if not available_bus:
+            return redirect("not_available")
+        # Calculate distance (simplified)
+        distance = random.randint(50, 500)  # Random distance between 50-500 km
+
+        # Calculate price
+        rate_per_km = {
+            "A": 10000,  # Rp 10,000 per km for Type A
+            "B": 15000,  # Rp 15,000 per km for Type B
+            "C": 20000,  # Rp 20,000 per km for Type C
+        }
+
+        base_price = distance * rate_per_km[bus_type]
+        total_price = base_price * rental_days
+
+        # Create Booking
+        booking = Booking(
+            costumer_name=booking_data["name"],
+            costumer_phone=booking_data["phone"],
+            bus=available_bus,
+            start_date=datetime.fromisoformat(booking_data["rental_date"]),
+            rental_days=booking_data["rental_days"],
+            pickup=pickup,
+            destination=destination,
+            additional_locations=json.dumps(additional_locations_list),
+            total_distance=distance,
+            payment_status="PENDING",
+        )
+        booking.save()
+
+        # clear session data
+        request.session.pop("booking_data", None)
+
+        return redirect("booking_confirmation", booking_id=booking.id)
+    booking_data = request.session.get("booking_data")
+    if not booking_data:
+        return redirect("booking")
+
+    return render(request, "route.html", {"booking_data": booking_data})
 
 
 def booking_confirmation(request, booking_id):
@@ -329,7 +416,7 @@ def geocode(request):
             params={"format": "json", "q": query, "countrycodes": "id", "limit": 5},
             headers={
                 "User-Agent": "RouteFinderApp/1.0 Django",
-                "Accept-Language": "en",
+                "Accept-Language": "id",
             },
         )
 
@@ -345,3 +432,37 @@ def geocode(request):
         return JsonResponse(
             {"error": f"Failed to fetch location data: {str(e)}"}, status=500
         )
+
+
+def save_route(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            waypoints = data.get("waypoints", [])
+
+            # Store route data in session
+            route_info = {
+                "start": waypoints[0]["name"] if waypoints else "",
+                "end": waypoints[-1]["name"] if waypoints else "",
+                "stops": [wp["name"] for wp in waypoints[1:-1]]
+                if len(waypoints) > 2
+                else [],
+                "total_distance": data.get("totalDistance"),
+                "total_duration": data.get("totalDuration"),
+            }
+
+            request.session["route_info"] = route_info
+
+            return JsonResponse({"success": True, "redirect_url": "/route-result/"})
+
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)})
+
+    return JsonResponse({"success": False, "error": "Invalid request method"})
+
+
+def route_result(request):
+    # Get route info from session
+    route_info = request.session.get("route_info", {})
+
+    return render(request, "route_result.html", {"route_info": route_info})
